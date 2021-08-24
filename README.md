@@ -1,4 +1,4 @@
-<img align="left" src="https://github.com/overdev/raylib-py/blob/master/logo/raylib-py_256x256.png" width=256>
+<img align="left" src="https://github.com/Ho011/pythonRaylib/blob/main/logo/pyraylib_256x256.png" width=256>
 
 # pyraylib
 
