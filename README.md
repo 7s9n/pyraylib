@@ -1,4 +1,4 @@
-<img align="left" src="https://github.com/overdev/raylib-py/blob/master/logo/raylib-py_256x256.png" width=256>
+<img align="left" src="https://github.com/Ho011/pyraylib/blob/main/logo/pyraylib_256x256.png" width=256>
 
 # pyraylib
 
@@ -79,10 +79,41 @@ if __name__ == "__main__":
 
 > Make sure the bin file name for the respective platform is `raylib.dll`, `libraylib.3.7.0.dylib` or `libraylib.so`.
 
-<!--
+## Using pyraylib
+
+Using pyraylib is as simple as this:
+
+```python
+import pyraylib
+from pyraylib.colors import (
+    LIGHTGRAY,
+    RAYWHITE
+)
+# Initialization
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 450
+window = pyraylib.Window((SCREEN_WIDTH, SCREEN_HEIGHT), 'pyraylib [core] example - basic window')
+# Set our game to run at 60 frames-per-second
+window.set_fps(60)
+
+# Main game loop
+while window.is_open(): # Detect window close button or ESC key
+    # Update
+    # TODO: Update your variables here
+    # Draw
+    window.begin_drawing()
+    window.clear_background(RAYWHITE)
+    pyraylib.draw_text('Congrats! You created your first window!', 190, 200, 20, LIGHTGRAY)
+    window.end_drawing()
+
+# Close window and OpenGL context
+window.close()
+```
+
+The `examples/` directory contains more examples.
+
 ## Tests
 
-_pyraylib_ does not have test code, but you can run the examples in the [examples directory](https://github.com/overdev/pyraylib/tree/master/examples).
+_pyraylib_ does not have test code, but you can run the examples in the [examples directory](https://github.com/Ho011/pyraylib/tree/main/logo/examples).
 >
 <!--
 ### Break down into end to end tests
@@ -123,6 +154,15 @@ In general, all structures inherit from `ctypes.Structure` class. At the moment,
 where `float`s are expected (although the argument can be omitted).
 
 All structures have `__str__()` implemented, so they have a very basic textual representation:
+
+## Contributing
+
+Contributions of any kind welcome!
+
+## Authors
+
+* **Ramon Santamaria** - *raylib's author* - [raysan5](https://github.com/raysan5)
+* **Hussein Sarea** - *python binding code* - [pyraylib](https://github.com/Ho011/pyraylib)
 
 ## License
 

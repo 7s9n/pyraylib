@@ -2500,7 +2500,6 @@ class Texture(Struct):
         ('_mipmaps' , Int),
         ('_format' , Int),
     ]
-
     def __init__(self, texture: 'Texture')-> None:
         if isinstance(texture, Texture):
             self.__set(texture)
@@ -2539,7 +2538,7 @@ class Texture(Struct):
             raise TypeError('You must provide an Image object')
 
     @staticmethod
-    def texture_cubemap(image: Image , layout: Union[CubemapLayout, int])-> None:
+    def texture_cubemap(image: Image , layout: Union[CubemapLayout, int])-> 'Texture':
         """Load cubemap from image, multiple image cubemap layouts supported"""
         if isinstance(image, Image):
             return _rl.LoadTextureCubemap(image , layout)
@@ -2779,6 +2778,7 @@ class Font(Struct):
         ('recs' , RectanglePtr), #Characters rectangles in texture
         ('chars' , CharInfoPtr), #Characters info data
     ]
+    # TODO fix this constructor : make it a copy constructor only
     def __init__(
         self,
         data: Union[str , Path, 'Font'] = None,) -> None:
@@ -3024,6 +3024,11 @@ class Camera3D(_Camera3D):
         _rl.SetCameraAltControl(_to_int(alt_key))
         return self
     
+    @python_wrapper('SetCameraPanControl', [Int])
+    def set_camera_pan_control(key_pan: Union[Keyboard, int])-> None:
+        """Set camera pan key to combine with mouse movement (free camera)"""
+        _rl.SetCameraPanControl(_to_int(key_pan))
+
     @python_wrapper('SetCameraSmoothZoomControl', [Int])
     def set_smooth_zoom_controll(self, keySmoothZoom: Union[Keyboard, int])-> 'Camera3D':
         """Set camera smooth zoom key to combine with mouse (free camera)"""
@@ -4321,7 +4326,8 @@ wrap_function('ResumeSound', [Sound])
 wrap_function('PlaySound', [Sound])
 wrap_function('LoadSoundFromWave', [Wave], Sound)
 wrap_function('LoadSound', [CharPtr], Sound)
-class _Music(Struct):
+
+class Music(Struct):
     """
         Music stream type (audio file streaming from memory)
         NOTE: Anything longer than ~10 seconds should be streamed
@@ -4333,64 +4339,51 @@ class _Music(Struct):
         ('ctxType', Int), #Type of music context (audio filetype)
         ('ctxData', VoidPtr), #Audio context data, depends on type
     ]
-
-class Music(_Music):
-    def __init__(self, data: Union[str, Path , 'Music']):
-        if isinstance(data, (str, Path)):
-            self.__set(Music.__load_music(data))
-        elif isinstance(data , Music):
-            self.__set(data)
+    def __init__(self, music: 'Music')-> None:
+        if isinstance(music, Music):
+            self.__set(music)
         else:
-            raise ValueError("oops something went wrong")
+            raise TypeError('{!r} is not a music object'.format(music))
 
-    @python_wrapper('PlayMusicStream', [_Music])
     def play(self)-> 'Music':
         _rl.PlayMusicStream(self)
         return self
 
-    @python_wrapper('UpdateMusicStream', [_Music])
     def update(self)-> 'Music':
         """Update music buffer with new stream data"""
         _rl.UpdateMusicStream(self)
         return self
 
-    @python_wrapper('StopMusicStream', [_Music])
     def stop(self)-> 'Music':
         """Stop music playing"""
         _rl.StopMusicStream(self)
         return self
 
-    @python_wrapper('PauseMusicStream', [_Music])
     def pause(self)-> 'Music':
         """Pause music playing"""
         _rl.PauseMusicStream(self)
         return self
 
-    @python_wrapper('ResumeMusicStream', [_Music])
     def resume(self)-> 'Music':
         """Resume playing paused music"""
         _rl.ResumeMusicStream(self)
         return self
 
-    @python_wrapper('SetMusicPitch', [_Music, Float])
     def set_pitch(self, pitch: float)-> 'Music':
         """Set pitch for music"""
         _rl.SetMusicPitch(self, _to_float(pitch))
         return self
 
-    @python_wrapper('IsMusicPlaying', [_Music], Bool)
     def is_playing(self)-> bool:
         """Check if music is playing"""
         return _rl.IsMusicPlaying(self)
 
-    @python_wrapper('SetMusicVolume', [_Music, Float])
     def set_volume(self, volume: float)-> 'Music':
         """Set volume for music (1.0 is max level)"""
         _rl.SetMusicVolume(self, _to_float(volume))
         return self
 
     @property
-    @python_wrapper('GetMusicTimePlayed', [_Music], Float)
     def time_played(self)-> float:
         """Get current music time played (in seconds)"""
         return _rl.GetMusicTimePlayed(self)
@@ -4400,7 +4393,6 @@ class Music(_Music):
         self.play()
 
     @property
-    @python_wrapper('GetMusicTimeLength', [_Music], Float)
     def length(self)-> float:
         """Get music time length (in seconds)"""
         return _rl.GetMusicTimeLength(self)
@@ -4408,14 +4400,12 @@ class Music(_Music):
     def close(self)-> None:
         self.unload()
 
-    @python_wrapper('UpdateMusicStream', [_Music])
     def unload(self)-> None:
         """Unload music stream"""
         _rl.UnloadMusicStream(self)
 
-    @classmethod
-    @python_wrapper('LoadMusicStream', [CharPtr], _Music)
-    def __load_music(cls, filename: Union[str, Path]):
+    @staticmethod
+    def load_music(filename: Union[str, Path])-> 'Music':
         return _rl.LoadMusicStream(_to_byte_str(str(filename)))
 
     def __set(self, data):
@@ -4426,6 +4416,19 @@ class Music(_Music):
             data.ctxType,
             data.ctxData
         )
+
+wrap_function('PlayMusicStream', [Music])
+wrap_function('StopMusicStream', [Music])
+wrap_function('LoadMusicStream', [CharPtr], Music)
+wrap_function('UpdateMusicStream', [Music])
+wrap_function('PauseMusicStream', [Music])
+wrap_function('ResumeMusicStream', [Music])
+wrap_function('SetMusicPitch', [Music, Float])
+wrap_function('IsMusicPlaying', [Music], Bool)
+wrap_function('SetMusicVolume', [Music, Float])
+wrap_function('GetMusicTimePlayed', [Music], Float)
+wrap_function('GetMusicTimeLength', [Music], Float)
+wrap_function('UpdateMusicStream', [Music])
 
 class AudioDevice:
     """
@@ -4486,9 +4489,9 @@ class Window(object, metaclass=Singleton):
     @python_wrapper('WindowShouldClose', None, Bool)
     def is_open(self)-> bool:
         """Check if KEY_ESCAPE pressed or Close icon pressed"""
-        return not self.window_should_close()
+        return not self.should_close()
 
-    def window_should_close(self)-> bool:
+    def should_close(self)-> bool:
         """Check if KEY_ESCAPE pressed or Close icon pressed"""
         return _rl.WindowShouldClose()
         
@@ -5003,6 +5006,53 @@ def get_touch_position(index: int)-> Vector2:
     """Returns touch position XY for a touch point index (relative to screen size)"""
     return _rl.GetTouchPosition(_to_int(index))
 
+# Gestures and Touch Handling Functions (Module: gestures)
+
+wrap_function('SetGesturesEnabled', [UInt])
+def set_gestures_enabled(flags: Union[Gestures, int])-> None:
+    """Enable a set of gestures using flags"""
+    _rl.SetGesturesEnabled(_to_int(flags))
+
+wrap_function('IsGestureDetected', [Int], Bool)
+def is_gesture_detected(gesture: int)-> bool:
+    """Check if a gesture have been detected"""
+    return _rl.IsGestureDetected(_to_int(gesture))
+
+wrap_function('GetGestureDetected', restype=Int)
+def get_gesture_detected()-> int:
+    """Get latest detected gesture"""
+    return _rl.GetGestureDetected()
+
+wrap_function('GetTouchPointsCount', restype=Int)
+def get_touch_points_count()-> int:
+    """Get touch points count"""
+    return _rl.GetTouchPointsCount()
+
+wrap_function('GetGestureHoldDuration', restype=Float)
+def get_gesture_hold_duration()-> float:
+    """Get gesture hold time in milliseconds"""
+    return _rl.GetGestureHoldDuration()
+
+wrap_function('GetGestureDragVector', restype=Vector2)
+def get_gesture_drag_vector()-> Vector2:
+    """Get gesture drag vector"""
+    return _rl.GetGestureDragVector()
+
+wrap_function('GetGestureDragAngle', restype=Float)
+def get_gesture_drag_angle()-> float:
+    """Get gesture drag angle"""
+    return _rl.GetGestureDragAngle()
+
+wrap_function('GetGesturePinchVector', restype=Vector2)
+def get_gesture_pinch_vector()-> Vector2:
+    """Get gesture pinch delta"""
+    return _rl.GetGesturePinchVector()
+
+wrap_function('GetGesturePinchAngle', restype=Float)
+def get_gesture_pinch_angle()-> float:
+    """Get gesture pinch angle"""
+    return _rl.GetGesturePinchAngle()
+
 # Misc. functions
 wrap_function('GetRandomValue', [Int, Int], Int)
 def get_random_value(min: int, max: int)-> int:
@@ -5142,6 +5192,17 @@ def save_file_text(filename: Union[str, Path], text: str)-> bool:
         _to_byte_str(text),
     )
     return success
+
+# Persistent storage management
+wrap_function('SaveStorageValue', [UInt, Int], Bool)
+def save_storage_value(position: int, value: int)-> bool:
+    """Save integer value to storage file (to defined position), returns true on success"""
+    return _rl.SaveStorageValue(_to_int(position), _to_int(value))
+
+wrap_function('LoadStorageValue', [UInt], Int)
+def load_storage_value(position: int)-> int:
+    """Load integer value from storage file (from defined position)"""
+    return _rl.LoadStorageValue(_to_int(position))
 
 wrap_function('OpenURL', [CharPtr], Bool)
 def open_url(url: str)-> None:
@@ -5354,6 +5415,58 @@ def draw_triangle_lines(
         color,
     )
 
+wrap_function('DrawRectangle', [Int,Int,Int,Int, Color])
+def draw_rectangle(pos_x: int, pos_y: int, width: int, height: int, color: Union[Sequence[int], Color])-> None:
+    """Draw a color-filled rectangle"""
+    _rl.DrawRectangle(
+        _to_int(pos_x),
+        _to_int(pos_y),
+        _to_int(width),
+        _to_int(height),
+        _to_color(color),
+    )
+
+wrap_function('DrawRectangleV', [Vector2, Vector2, Color])
+def draw_rectangle_v(position: Union[Sequence[Number], Vector2], size: Union[Sequence[Number], Vector2], color: Union[Sequence[int], Color])-> None:
+    """Draw a color-filled rectangle (Vector version)"""
+    _rl.DrawRectangleV(
+        _vec2(position),
+        _vec2(size),
+        _to_color(color)
+    )
+
+wrap_function('DrawPoly', [Vector2, Int, Float, Float, Color])
+def draw_poly(
+    center: Union[Sequence[Number], Vector2], 
+    sides: int,
+    radius: float,
+    rotation: float,
+    color: Union[Sequence[int], Color])-> None:
+    """Draw a regular polygon (Vector version)"""
+    _rl.DrawPoly(
+        _vec2(center),
+        _to_int(sides),
+        _to_float(radius),
+        _to_float(rotation),
+        _to_color(color),
+    )
+
+wrap_function('DrawPolyLines', [Vector2, Int, Float, Float, Color])
+def draw_poly_lines(
+    center: Union[Sequence[Number], Vector2], 
+    sides: int,
+    radius: float,
+    rotation: float,
+    color: Union[Sequence[int], Color])-> None:
+    """Draw a polygon outline of n sides"""
+    _rl.DrawPolyLines(
+        _vec2(center),
+        _to_int(sides),
+        _to_float(radius),
+        _to_float(rotation),
+        _to_color(color),
+    )
+
 # Basic geometric 3D shapes drawing functions
 wrap_function('DrawLine3D', [Vector3, Vector3, Color])
 def draw_line_3d(
@@ -5429,6 +5542,7 @@ def draw_cube(
     _rl.DrawCube(
         _vec3(position),
         _to_float(width),
+        _to_float(height),
         _to_float(length),
         _to_color(color),
     )
@@ -5444,6 +5558,7 @@ def draw_cube_wires(
     _rl.DrawCubeWires(
         _vec3(position),
         _to_float(width),
+        _to_float(height),
         _to_float(length),
         _to_color(color),
     )
@@ -5537,4 +5652,3 @@ def draw_sphere_ex(
         _to_int(slices),
         _to_color(color),
     )
-
