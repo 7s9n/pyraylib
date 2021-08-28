@@ -113,7 +113,7 @@ The `examples/` directory contains more examples.
 
 ## Tests
 
-_pyraylib_ does not have test code, but you can run the examples in the [examples directory](https://github.com/Ho011/pyraylib/tree/main/logo/examples).
+_pyraylib_ does not have test code, but you can run the examples in the [examples directory](https://github.com/Ho011/pyraylib/tree/main/examples).
 >
 <!--
 ### Break down into end to end tests
