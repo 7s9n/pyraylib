@@ -1,0 +1,4 @@
+include LICENSE
+include README.me
+recursive-include pyraylib/lib *
+recursive-include examples *

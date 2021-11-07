@@ -4,7 +4,6 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 here = Path(__file__).absolute().parent
-print('Here: ', here)
 platform = sys.platform
 
 # Get the long description from the README file
@@ -54,7 +53,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0',  # Required
+    version='1.0.1',  # Required
 
     python_requires='>=3.3, <4',
 
