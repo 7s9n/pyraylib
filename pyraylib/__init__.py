@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from enum import IntFlag
 from multipledispatch import dispatch
-from collections import (
+from collections.abc import (
     Iterable
 )
 from typing import (
