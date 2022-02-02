@@ -5,9 +5,12 @@ import os
 from pathlib import Path
 from enum import IntFlag
 from multipledispatch import dispatch
-from collections import (
-    Iterable
-)
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
+
 from typing import (
     Any,
     Iterator,
