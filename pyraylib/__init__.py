@@ -55,6 +55,11 @@ main_mod = sys.modules['__main__']
 env_path = Path(os.environ['RAYLIB_PATH']) if 'RAYLIB_PATH' in os.environ else None
 file_path = Path(__file__).parent / 'lib'
 inside_package = file_path.parent
+
+# support import from shell
+if not hasattr(main_mod, '__file__'):
+  main_mod.__file__ = '.'
+
 main_path = Path(main_mod.__file__).parent 
 
 if env_path and env_path.exists():
