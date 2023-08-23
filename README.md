@@ -2,8 +2,8 @@
 
 # pyraylib
 
-[![Downloads](https://pepy.tech/badge/pyraylib)](https://pepy.tech/project/pyraylib)
-[![Downloads](https://pepy.tech/badge/pyraylib/month)](https://pepy.tech/project/pyraylib)
+[![Downloads](https://static.pepy.tech/badge/pyraylib)](https://pepy.tech/project/pyraylib)
+[![Downloads](https://static.pepy.tech/badge/pyraylib/month)](https://pepy.tech/project/pyraylib)
 
 A python binding for the great _C_ library **[raylib](https://github.com/raysan5/raylib)**.
 The library provides object-oriented wrappers around raylib's struct interfaces.
